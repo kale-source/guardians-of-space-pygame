@@ -1,8 +1,5 @@
 import os
 import pygame
-from dotenv import load_dotenv
-
-load_dotenv()
 
 # ── Tela ──────────────────────────────────────────────────────────────────────
 WIDTH = int(os.getenv("WIDTH",  800))
