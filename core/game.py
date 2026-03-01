@@ -3,6 +3,8 @@ from settings import WIDTH, HEIGHT, FPS, TITLE
 from core.state_manager import StateManager
 from states.playing_state import PlayingState
 from states.game_over_state import GameOverState
+from states.upgrade_state import UpgradeState
+
 
 class Game:
     """
@@ -15,7 +17,7 @@ class Game:
         - Delegar tudo o mais ao estado ativo via StateManager
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         pygame.init()
         self.screen  = pygame.display.set_mode((WIDTH, HEIGHT))
         self.clock   = pygame.time.Clock()
@@ -29,7 +31,7 @@ class Game:
 
     # ── Loop principal ────────────────────────────────────────────────────────
 
-    def run(self):
+    def run(self) -> None:
         while self._running:
             self.clock.tick(FPS)
             events = pygame.event.get()
@@ -55,6 +57,7 @@ class Game:
 
     # ── Registro de estados ───────────────────────────────────────────────────
 
-    def _register_states(self):
+    def _register_states(self) -> None:
         self._sm.register("playing",   PlayingState())
         self._sm.register("game_over", GameOverState())
+        self._sm.register("upgrade",   UpgradeState())

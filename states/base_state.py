@@ -31,7 +31,6 @@ class BaseState(ABC):
         ...
 
     # ── Hooks opcionais ───────────────────────────────────────────────────────
-
     def on_enter(self, previous_state: str | None = None):
         """Chamado ao entrar no estado. Ideal para reset/inicialização."""
         pass

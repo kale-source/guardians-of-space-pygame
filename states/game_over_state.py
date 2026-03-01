@@ -2,6 +2,7 @@ import pygame
 from states.base_state import BaseState
 from settings import WIDTH, HEIGHT, FONT_MAIN, FONT_SUB, FONT_DETAILS, WHITE, RED
 
+
 class GameOverState(BaseState):
     """
     Tela exibida quando o player colide com um meteoro.
@@ -13,7 +14,7 @@ class GameOverState(BaseState):
         → "playing"  ao pressionar ESC (reinicia o jogo)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.seconds = 0
         self.level   = 1
@@ -26,34 +27,37 @@ class GameOverState(BaseState):
 
     # ── BaseState interface ───────────────────────────────────────────────────
 
-    def on_enter(self, previous_state: str | None = None):
-        """
-        Recebe os dados finais da partida.
-        O PlayingState deve popular self.context antes de sinalizar a troca.
-        """
+    def on_enter(self, previous_state: str | None = None) -> None:
         ctx = getattr(self, "context", {})
-        self.seconds = ctx.get("seconds", 0)
-        self.level   = ctx.get("level",   1)
-        self.score   = ctx.get("score",   0)
-        self.done    = False
+        self.seconds         = ctx.get("seconds",         0)
+        self.level           = ctx.get("level",           1)
+        self.score           = ctx.get("score",           0)
+        self.escaped_meteors = ctx.get("escaped_meteors", 0)
+        self.defeat_reason   = ctx.get("defeat_reason",   "collision")
+        self.done            = False
 
-    def handle_events(self, events: list[pygame.event.Event]):
+    def handle_events(self, events: list[pygame.event.Event]) -> None:
         for event in events:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 self.done       = True
                 self.next_state = "playing"
 
-    def update(self):
-        pass  # Estado estático — sem lógica de atualização
+    def update(self) -> None:
+        pass
 
-    def draw(self, screen: pygame.Surface):
-        # Overlay escurece o fundo (o estado anterior já foi desenhado antes)
+    def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self._overlay, (0, 0))
 
-        title = FONT_MAIN.render("Você foi atingido por um meteoro!", True, RED)
+        if self.defeat_reason == "escaped":
+            title_text = "10 meteoros escaparam!"
+        else:
+            title_text = "Você foi atingido por um meteoro!"
+
+        title = FONT_MAIN.render(title_text, True, RED)
         hint  = FONT_SUB.render("Pressione ESC para reiniciar", True, WHITE)
         stats = FONT_DETAILS.render(
-            f"Tempo: {self.seconds}s   Level: {self.level}   Score: {self.score}",
+            f"Tempo: {self.seconds}s   Level: {self.level}   "
+            f"Score: {self.score}   Escaparam: {self.escaped_meteors}",
             True, WHITE,
         )
 

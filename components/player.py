@@ -9,6 +9,7 @@ from settings import (
 )
 from components.bullet import Bullet
 
+
 class Player(Entity):
     """
     Nave controlada pelo jogador.
@@ -24,15 +25,17 @@ class Player(Entity):
         A cor interpola de ciano (vazio) a laranja (cheio).
     """
 
-    def __init__(self, x: float, y: float):
+    def __init__(self, x: float, y: float) -> None:
         super().__init__(x, y, PLAYER_WIDTH, PLAYER_HEIGHT)
-        self.speed           = PLAYER_SPEED
-        self._cooldown_timer = 0
-        self._charge_frames  = 0        # frames que ESPAÇO está sendo segurado
-        self._space_held     = False    # estado do ESPAÇO no frame anterior
+        self.speed            = PLAYER_SPEED
+        self._cooldown_timer  = 0
+        self._charge_frames   = 0
+        self._space_held      = False
+        self.damage_bonus     = 0     # acumulado via upgrades
 
     # ── Entity interface ──────────────────────────────────────────────────────
-    def _build_image(self):
+
+    def _build_image(self) -> None:
         w, h = self.width, self.height
         pygame.draw.polygon(
             self.image, WHITE,
@@ -45,13 +48,14 @@ class Player(Entity):
         bullet_group: pygame.sprite.Group,
         *args,
         **kwargs,
-    ):
+    ) -> None:
         self._move(keys)
         self._handle_charge(keys, bullet_group)
         self._update_charge_visual()
 
     # ── Lógica privada ────────────────────────────────────────────────────────
-    def _move(self, keys: pygame.key.ScancodeWrapper):
+
+    def _move(self, keys: pygame.key.ScancodeWrapper) -> None:
         if keys[pygame.K_LEFT]:
             self.pos_x -= self.speed
         if keys[pygame.K_RIGHT]:
@@ -69,7 +73,7 @@ class Player(Entity):
         self,
         keys: pygame.key.ScancodeWrapper,
         bullet_group: pygame.sprite.Group,
-    ):
+    ) -> None:
         space_pressed = bool(keys[pygame.K_SPACE])
 
         if self._cooldown_timer > 0:
@@ -88,13 +92,27 @@ class Player(Entity):
 
         self._space_held = space_pressed
 
-    def _fire(self, bullet_group: pygame.sprite.Group, charge_ratio: float):
+    def _fire(self, bullet_group: pygame.sprite.Group, charge_ratio: float) -> None:
         """Instancia a bala centralizada na ponta da nave."""
         tip_x = self.pos_x + self.width  // 2
         tip_y = self.pos_y
-        bullet_group.add(Bullet(tip_x, tip_y, charge_ratio))
+        bullet_group.add(Bullet(tip_x, tip_y, charge_ratio, self.damage_bonus))
 
-    def _update_charge_visual(self):
+    # ── Upgrades ──────────────────────────────────────────────────────────────
+
+    def apply_speed_upgrade(self, bonus: int) -> None:
+        if(self.speed >= 30):
+            print("Velocidade máxima atingida. Upgrade de velocidade não aplicado.")
+            return
+        else:   
+            self.speed += bonus
+            print(f"Velocidade atualizada: {self.speed}")
+    
+    def apply_damage_upgrade(self, bonus: int) -> None:
+        self.damage_bonus += bonus
+        print(f"Bônus de dano atualizado: {self.damage_bonus}")
+
+    def _update_charge_visual(self) -> None:
         """
         Redesenha a Surface do player incluindo o indicador de carga.
         Um arco abaixo da nave cresce e muda de cor conforme a carga aumenta.

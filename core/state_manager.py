@@ -1,6 +1,7 @@
 from __future__ import annotations
 from states.base_state import BaseState
 
+
 class StateManager:
     """
     Gerencia o ciclo de vida e as transições entre estados do jogo.
@@ -26,23 +27,26 @@ class StateManager:
             sm.change(sm.current.next_state)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._states: dict[str, BaseState] = {}
         self._current_key: str | None = None
 
     # ── Registro ──────────────────────────────────────────────────────────────
-    def register(self, key: str, state: BaseState):
+
+    def register(self, key: str, state: BaseState) -> None:
         """Associa uma chave a uma instância de BaseState."""
         self._states[key] = state
 
     # ── Acesso ────────────────────────────────────────────────────────────────
+
     @property
     def current(self) -> BaseState | None:
         """Retorna o estado atualmente ativo."""
         return self._states.get(self._current_key)  # type: ignore[arg-type]
 
     # ── Transições ────────────────────────────────────────────────────────────
-    def change(self, key: str):
+
+    def change(self, key: str) -> None:
         """
         Troca o estado ativo para `key`.
 
@@ -68,7 +72,7 @@ class StateManager:
 
     # ── Injeção de contexto ───────────────────────────────────────────────────
 
-    def _inject_context(self, from_key: str | None, to_key: str):
+    def _inject_context(self, from_key: str | None, to_key: str) -> None:
         """
         Transfere dados relevantes entre estados na transição.
 
@@ -80,8 +84,22 @@ class StateManager:
             game_over = self._states.get("game_over")
 
             if playing and game_over:
+                escaped = getattr(playing, "escaped_meteors", 0)
                 game_over.context = {  # type: ignore[attr-defined]
-                    "seconds": getattr(playing, "seconds", 0),
-                    "level":   getattr(playing, "level",   1),
-                    "score":   getattr(playing, "score",   0),
+                    "seconds":         getattr(playing, "seconds", 0),
+                    "level":           getattr(playing, "level",   1),
+                    "score":           getattr(playing, "score",   0),
+                    "escaped_meteors": escaped,
+                    "defeat_reason":   "escaped" if escaped >= 10 else "collision",
                 }
+
+        elif from_key == "upgrade" and to_key == "playing":
+            # Aplica a escolha do upgrade diretamente no PlayingState
+            upgrade = self._states.get("upgrade")
+            playing = self._states.get("playing")
+
+            if upgrade and playing:
+                choice = getattr(upgrade, "choice", None)
+                if choice:
+                    print(f"Aplicando upgrade: {choice}")
+                    playing.apply_upgrade(choice)  # type: ignore[attr-defined]

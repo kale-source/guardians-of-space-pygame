@@ -8,6 +8,7 @@ from settings import (
     HEIGHT,
 )
 
+
 class Bullet(Entity):
     """
     Projétil disparado pelo player.
@@ -22,13 +23,13 @@ class Bullet(Entity):
         charge_ratio = 1.0  → bala máxima, BULLET_MAX_DAMAGE de dano
     """
 
-    def __init__(self, x: float, y: float, charge_ratio: float = 0.0):
+    def __init__(self, x: float, y: float, charge_ratio: float = 0.0, damage_bonus: int = 0) -> None:
         self.charge_ratio = max(0.0, min(1.0, charge_ratio))
-        self.damage = max(1, round(1 + (BULLET_MAX_DAMAGE - 1) * self.charge_ratio))
+        self.damage       = max(1, round(1 + (BULLET_MAX_DAMAGE - 1) * self.charge_ratio) + damage_bonus)
 
         # Tamanho escala com a carga
-        mult = 1.0 + (BULLET_MAX_SIZE_MULT - 1.0) * self.charge_ratio
-        width = max(1, int(BULLET_BASE_WIDTH  * mult))
+        mult   = 1.0 + (BULLET_MAX_SIZE_MULT - 1.0) * self.charge_ratio
+        width  = max(1, int(BULLET_BASE_WIDTH  * mult))
         height = max(1, int(BULLET_BASE_HEIGHT * mult))
 
         # Centraliza a bala no X de origem
@@ -38,7 +39,8 @@ class Bullet(Entity):
         self.speed = BULLET_SPEED
 
     # ── Entity interface ──────────────────────────────────────────────────────
-    def _build_image(self):
+
+    def _build_image(self) -> None:
         color = self._lerp_color(BULLET_COLOR, BULLET_CHARGED_COLOR, self.charge_ratio)
         pygame.draw.rect(
             self.image,
@@ -47,7 +49,7 @@ class Bullet(Entity):
             border_radius=min(self.width, self.height) // 2,
         )
 
-    def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs) -> None:
         self.pos_y -= self.speed
         self._sync_rect()
 

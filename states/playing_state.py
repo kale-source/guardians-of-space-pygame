@@ -6,8 +6,10 @@ from components.stars import StarField
 from settings import (
     WIDTH, HEIGHT,
     PLAYER_START_X, PLAYER_START_Y,
-    METEOR_SPAWN_DELAY,
+    METEOR_SPAWN_DELAY, METEOR_SPAWN_DELAY_MIN, METEOR_SPAWN_DELAY_SCALE,
     LEVEL_UP_INTERVAL,
+    MAX_ESCAPED_METEORS,
+    UPGRADE_EVERY_N_KILLS, UPGRADE_SPEED_BONUS, UPGRADE_DAMAGE_BONUS,
     FONT_DETAILS,
     WHITE,
 )
@@ -21,21 +23,22 @@ class PlayingState(BaseState):
         → "game_over"  quando um meteoro colide com o player
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._setup()
 
     # ── BaseState interface ───────────────────────────────────────────────────
 
-    def on_enter(self, previous_state: str | None = None):
-        self._setup()
+    def on_enter(self, previous_state: str | None = None) -> None:
+        if previous_state != "upgrade":
+            self._setup()
 
-    def handle_events(self, events: list[pygame.event.Event]):
+    def handle_events(self, events: list[pygame.event.Event]) -> None:
         for event in events:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_s:
                 self.star_field.toggle()
 
-    def update(self):
+    def update(self) -> None:
         self._tick_timer()
         self._check_level_up()
         self._handle_player()
@@ -45,7 +48,7 @@ class PlayingState(BaseState):
         self._check_bullet_meteor_collisions()
         self._check_player_meteor_collision()
 
-    def draw(self, screen: pygame.Surface):
+    def draw(self, screen: pygame.Surface) -> None:
         screen.fill((0, 0, 0))
         self.star_field.update_draw(screen)
         self.bullet_group.draw(screen)
@@ -55,55 +58,66 @@ class PlayingState(BaseState):
 
     # ── Setup / reset ─────────────────────────────────────────────────────────
 
-    def _setup(self):
+    def _setup(self) -> None:
         self.player      = Player(PLAYER_START_X, PLAYER_START_Y)
         self.star_field  = StarField()
 
         self.meteor_group: pygame.sprite.Group = pygame.sprite.Group()
         self.bullet_group: pygame.sprite.Group = pygame.sprite.Group()
 
-        self.spawn_timer = 0
-        self.level       = 1
-        self.score       = 0
+        self.spawn_timer      = 0
+        self.level            = 1
+        self.score            = 0
+        self.escaped_meteors  = 0
+        self.total_kills      = 0    # total acumulado para trigger de upgrade
+        self._next_upgrade_at = UPGRADE_EVERY_N_KILLS
 
         self._start_ticks   = pygame.time.get_ticks()
         self._last_level_up = 0
 
     # ── Lógica privada ────────────────────────────────────────────────────────
 
-    def _tick_timer(self):
+    def _tick_timer(self) -> None:
         elapsed_ms   = pygame.time.get_ticks() - self._start_ticks
         self.seconds = elapsed_ms // 1000
 
-    def _check_level_up(self):
+    def _check_level_up(self) -> None:
         threshold = self.seconds - (self.seconds % LEVEL_UP_INTERVAL)
         if threshold > 0 and threshold > self._last_level_up:
             self.level         += 1
             self._last_level_up = threshold
 
-    def _handle_player(self):
+    def _handle_player(self) -> None:
         keys = pygame.key.get_pressed()
         self.player.update(keys, self.bullet_group)     # passa o grupo de balas
 
-    def _spawn_meteors(self):
+    def _spawn_meteors(self) -> None:
+        current_delay = max(
+            METEOR_SPAWN_DELAY_MIN,
+            METEOR_SPAWN_DELAY - (self.level - 1) * METEOR_SPAWN_DELAY_SCALE,
+        )
         self.spawn_timer += 1
-        if self.spawn_timer >= METEOR_SPAWN_DELAY:
+        if self.spawn_timer >= current_delay:
             self.meteor_group.add(Meteor(self.level))
             self.spawn_timer = 0
 
-    def _update_meteors(self):
+    def _update_meteors(self) -> None:
         self.meteor_group.update()
         for meteor in list(self.meteor_group):
             if meteor.is_off_screen():  # type: ignore[attr-defined]
                 meteor.kill()
+                self.escaped_meteors += 1
+                if self.escaped_meteors >= MAX_ESCAPED_METEORS:
+                    self.done       = True
+                    self.next_state = "game_over"
 
-    def _update_bullets(self):
+    def _update_bullets(self) -> None:
         self.bullet_group.update()
         for bullet in list(self.bullet_group):
             if bullet.is_off_screen():  # type: ignore[attr-defined]
                 bullet.kill()
 
-    def _check_bullet_meteor_collisions(self):
+    def _check_bullet_meteor_collisions(self) -> None:
         """
         Para cada bala, verifica colisão com meteoros via máscara.
 
@@ -123,9 +137,21 @@ class PlayingState(BaseState):
             for meteor in meteors_hit:
                 meteor.hit(bullet.damage)        # type: ignore[attr-defined]
                 if not meteor.alive():
-                    self.score += 1
+                    self.score       += 1
+                    self.total_kills += 1
+                    if self.total_kills >= self._next_upgrade_at:
+                        self._next_upgrade_at += UPGRADE_EVERY_N_KILLS
+                        self.done       = True
+                        self.next_state = "upgrade"
 
-    def _check_player_meteor_collision(self):
+    def apply_upgrade(self, choice: str) -> None:
+        """Chamado pelo StateManager ao retornar do UpgradeState."""
+        if choice == "speed":
+            self.player.apply_speed_upgrade(UPGRADE_SPEED_BONUS)
+        elif choice == "damage":
+            self.player.apply_damage_upgrade(UPGRADE_DAMAGE_BONUS)
+
+    def _check_player_meteor_collision(self) -> None:
         hit = pygame.sprite.spritecollide(
             self.player, self.meteor_group,
             dokill=False,
@@ -135,9 +161,11 @@ class PlayingState(BaseState):
             self.done       = True
             self.next_state = "game_over"
 
-    def _draw_hud(self, screen: pygame.Surface):
+    def _draw_hud(self, screen: pygame.Surface) -> None:
         hud = FONT_DETAILS.render(
-            f"Segundos: {self.seconds}   Level: {self.level}   Score: {self.score}",
+            f"Segundos: {self.seconds}   Level: {self.level}   "
+            f"Score: {self.score}   Escaparam: {self.escaped_meteors}/{MAX_ESCAPED_METEORS}   "
+            f"Próximo upgrade: {self._next_upgrade_at - self.total_kills}",
             True, WHITE,
         )
         screen.blit(hud, (10, 10))

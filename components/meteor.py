@@ -26,8 +26,8 @@ class Meteor(Entity):
     """
 
     def __init__(self, level: int):
-        self.radius  = random.randint(METEOR_RADIUS_MIN, METEOR_RADIUS_MAX)
-        self.max_hp  = 1 + level
+        self.radius = random.randint(METEOR_RADIUS_MIN, METEOR_RADIUS_MAX)
+        self.max_hp = 1 + level
         self.hp = self.max_hp
         self._base_color = random.choice(METEOR_COLORS)
         size = self.radius * 2
@@ -35,8 +35,8 @@ class Meteor(Entity):
         x = random.randint(self.radius, WIDTH - self.radius) - self.radius
         y = -size
 
+        # entities/meteor.py
         self.speed = random.uniform(METEOR_SPEED_MIN, METEOR_SPEED_MAX) + level * METEOR_SPEED_SCALE
-
         super().__init__(x, y, size, size)
         self.mask = pygame.mask.from_surface(self.image)
 

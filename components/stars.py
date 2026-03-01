@@ -6,7 +6,6 @@ from settings import (
     STAR_SPEED_MIN, STAR_SPEED_MAX,
 )
 
-
 class Star:
     """
     Estrela individual com movimento vertical e efeito de piscar.
@@ -18,7 +17,7 @@ class Star:
 
     __slots__ = ("x", "y", "brightness", "direction", "speed", "size")
 
-    def __init__(self, randomize_y: bool = True) -> None:
+    def __init__(self, randomize_y: bool = True):
         self.x          = random.randint(0, WIDTH)
         self.y          = float(random.randint(0, HEIGHT) if randomize_y else random.randint(-HEIGHT, 0))
         self.speed      = random.uniform(STAR_SPEED_MIN, STAR_SPEED_MAX)
@@ -26,7 +25,7 @@ class Star:
         self.brightness = random.randint(STAR_BRIGHTNESS_MIN, STAR_BRIGHTNESS_MAX)
         self.direction  = random.choice((-1, 1))
 
-    def update(self) -> None:
+    def update(self):
         # Movimento vertical — reposiciona no topo ao sair pela base
         self.y += self.speed
         if self.y > HEIGHT:
@@ -42,7 +41,7 @@ class Star:
             self.brightness = STAR_BRIGHTNESS_MIN
             self.direction  = 1
 
-    def draw(self, screen: pygame.Surface) -> None:
+    def draw(self, screen: pygame.Surface):
         b = self.brightness
         pygame.draw.circle(screen, (b, b, b), (self.x, int(self.y)), self.size)
 
@@ -57,16 +56,16 @@ class StarField:
         field.update_draw(screen)  # atualiza e desenha num único passo
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         # randomize_y=True distribui as estrelas pela tela inteira no início,
         # evitando que todas apareçam do topo ao mesmo tempo
         self._stars  = [Star(randomize_y=True) for _ in range(NUM_STARS)]
         self.visible = True
 
-    def toggle(self) -> None:
+    def toggle(self):
         self.visible = not self.visible
 
-    def update_draw(self, screen: pygame.Surface) -> None:
+    def update_draw(self, screen: pygame.Surface):
         if not self.visible:
             return
         for star in self._stars:
