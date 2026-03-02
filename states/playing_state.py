@@ -3,16 +3,7 @@ from states.base_state import BaseState
 from components.player import Player
 from components.meteor import Meteor
 from components.stars import StarField
-from settings import (
-    WIDTH, HEIGHT,
-    PLAYER_START_X, PLAYER_START_Y,
-    METEOR_SPAWN_DELAY, METEOR_SPAWN_DELAY_MIN, METEOR_SPAWN_DELAY_SCALE,
-    LEVEL_UP_INTERVAL,
-    MAX_ESCAPED_METEORS,
-    UPGRADE_EVERY_N_KILLS, UPGRADE_SPEED_BONUS, UPGRADE_DAMAGE_BONUS,
-    FONT_DETAILS,
-    WHITE,
-)
+from settings import settings
 
 
 class PlayingState(BaseState):
@@ -59,7 +50,7 @@ class PlayingState(BaseState):
     # ── Setup / reset ─────────────────────────────────────────────────────────
 
     def _setup(self) -> None:
-        self.player      = Player(PLAYER_START_X, PLAYER_START_Y)
+        self.player      = Player(settings.PLAYER_START_X, settings.PLAYER_START_Y)
         self.star_field  = StarField()
 
         self.meteor_group: pygame.sprite.Group = pygame.sprite.Group()
@@ -70,7 +61,7 @@ class PlayingState(BaseState):
         self.score            = 0
         self.escaped_meteors  = 0
         self.total_kills      = 0    # total acumulado para trigger de upgrade
-        self._next_upgrade_at = UPGRADE_EVERY_N_KILLS
+        self._next_upgrade_at = settings.UPGRADE_EVERY_N_KILLS
 
         self._start_ticks   = pygame.time.get_ticks()
         self._last_level_up = 0
@@ -82,7 +73,7 @@ class PlayingState(BaseState):
         self.seconds = elapsed_ms // 1000
 
     def _check_level_up(self) -> None:
-        threshold = self.seconds - (self.seconds % LEVEL_UP_INTERVAL)
+        threshold = self.seconds - (self.seconds % settings.LEVEL_UP_INTERVAL)
         if threshold > 0 and threshold > self._last_level_up:
             self.level         += 1
             self._last_level_up = threshold
@@ -93,8 +84,8 @@ class PlayingState(BaseState):
 
     def _spawn_meteors(self) -> None:
         current_delay = max(
-            METEOR_SPAWN_DELAY_MIN,
-            METEOR_SPAWN_DELAY - (self.level - 1) * METEOR_SPAWN_DELAY_SCALE,
+            settings.METEOR_SPAWN_DELAY_MIN,
+            settings.METEOR_SPAWN_DELAY - (self.level - 1) * settings.METEOR_SPAWN_DELAY_SCALE,
         )
         self.spawn_timer += 1
         if self.spawn_timer >= current_delay:
@@ -107,7 +98,7 @@ class PlayingState(BaseState):
             if meteor.is_off_screen():  # type: ignore[attr-defined]
                 meteor.kill()
                 self.escaped_meteors += 1
-                if self.escaped_meteors >= MAX_ESCAPED_METEORS:
+                if self.escaped_meteors >= settings.MAX_ESCAPED_METEORS:
                     self.done       = True
                     self.next_state = "game_over"
 
@@ -140,16 +131,16 @@ class PlayingState(BaseState):
                     self.score       += 1
                     self.total_kills += 1
                     if self.total_kills >= self._next_upgrade_at:
-                        self._next_upgrade_at += UPGRADE_EVERY_N_KILLS
+                        self._next_upgrade_at += settings.UPGRADE_EVERY_N_KILLS
                         self.done       = True
                         self.next_state = "upgrade"
 
     def apply_upgrade(self, choice: str) -> None:
         """Chamado pelo StateManager ao retornar do UpgradeState."""
         if choice == "speed":
-            self.player.apply_speed_upgrade(UPGRADE_SPEED_BONUS)
+            self.player.apply_speed_upgrade(settings.UPGRADE_SPEED_BONUS)
         elif choice == "damage":
-            self.player.apply_damage_upgrade(UPGRADE_DAMAGE_BONUS)
+            self.player.apply_damage_upgrade(settings.UPGRADE_DAMAGE_BONUS)
 
     def _check_player_meteor_collision(self) -> None:
         hit = pygame.sprite.spritecollide(
@@ -162,10 +153,10 @@ class PlayingState(BaseState):
             self.next_state = "game_over"
 
     def _draw_hud(self, screen: pygame.Surface) -> None:
-        hud = FONT_DETAILS.render(
+        hud = settings.FONT_DETAILS.render(
             f"Segundos: {self.seconds}   Level: {self.level}   "
-            f"Score: {self.score}   Escaparam: {self.escaped_meteors}/{MAX_ESCAPED_METEORS}   "
+            f"Score: {self.score}   Escaparam: {self.escaped_meteors}/{settings.MAX_ESCAPED_METEORS}   "
             f"Próximo upgrade: {self._next_upgrade_at - self.total_kills}",
-            True, WHITE,
+            True, settings.WHITE,
         )
         screen.blit(hud, (10, 10))

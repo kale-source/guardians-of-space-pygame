@@ -1,10 +1,6 @@
 import pygame
 import random
-from settings import (
-    WIDTH, HEIGHT,
-    NUM_STARS, STAR_BRIGHTNESS_MIN, STAR_BRIGHTNESS_MAX, STAR_BLINK_SPEED,
-    STAR_SPEED_MIN, STAR_SPEED_MAX,
-)
+from settings import settings
 
 class Star:
     """
@@ -18,27 +14,27 @@ class Star:
     __slots__ = ("x", "y", "brightness", "direction", "speed", "size")
 
     def __init__(self, randomize_y: bool = True):
-        self.x          = random.randint(0, WIDTH)
-        self.y          = float(random.randint(0, HEIGHT) if randomize_y else random.randint(-HEIGHT, 0))
-        self.speed      = random.uniform(STAR_SPEED_MIN, STAR_SPEED_MAX)
-        self.size       = 1 if self.speed < (STAR_SPEED_MIN + STAR_SPEED_MAX) / 2 else 2
-        self.brightness = random.randint(STAR_BRIGHTNESS_MIN, STAR_BRIGHTNESS_MAX)
+        self.x          = random.randint(0, settings.WIDTH)
+        self.y          = float(random.randint(0, settings.HEIGHT) if randomize_y else random.randint(-settings.HEIGHT, 0))
+        self.speed      = random.uniform(settings.STAR_SPEED_MIN, settings.STAR_SPEED_MAX)
+        self.size       = 1 if self.speed < (settings.STAR_SPEED_MIN + settings.STAR_SPEED_MAX) / 2 else 2
+        self.brightness = random.randint(settings.STAR_BRIGHTNESS_MIN, settings.STAR_BRIGHTNESS_MAX)
         self.direction  = random.choice((-1, 1))
 
     def update(self):
         # Movimento vertical — reposiciona no topo ao sair pela base
         self.y += self.speed
-        if self.y > HEIGHT:
+        if self.y > settings.HEIGHT:
             self.y = float(random.randint(-10, 0))
-            self.x = random.randint(0, WIDTH)
+            self.x = random.randint(0, settings.WIDTH)
 
         # Efeito de piscar
-        self.brightness += self.direction * STAR_BLINK_SPEED
-        if self.brightness >= STAR_BRIGHTNESS_MAX:
-            self.brightness = STAR_BRIGHTNESS_MAX
+        self.brightness += self.direction * settings.STAR_BLINK_SPEED
+        if self.brightness >= settings.STAR_BRIGHTNESS_MAX:
+            self.brightness = settings.STAR_BRIGHTNESS_MAX
             self.direction  = -1
-        elif self.brightness <= STAR_BRIGHTNESS_MIN:
-            self.brightness = STAR_BRIGHTNESS_MIN
+        elif self.brightness <= settings.STAR_BRIGHTNESS_MIN:
+            self.brightness = settings.STAR_BRIGHTNESS_MIN
             self.direction  = 1
 
     def draw(self, screen: pygame.Surface):
@@ -59,7 +55,7 @@ class StarField:
     def __init__(self):
         # randomize_y=True distribui as estrelas pela tela inteira no início,
         # evitando que todas apareçam do topo ao mesmo tempo
-        self._stars  = [Star(randomize_y=True) for _ in range(NUM_STARS)]
+        self._stars  = [Star(randomize_y=True) for _ in range(settings.NUM_STARS)]
         self.visible = True
 
     def toggle(self):

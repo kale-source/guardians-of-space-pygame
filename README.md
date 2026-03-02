@@ -42,6 +42,8 @@ Guardians of Space é um shooter de sobrevivência com visão top-down onde o jo
 |---|---|---|
 | Python | 3.12+ | Linguagem principal |
 | Pygame | 2.6+ | Engine gráfica e de input |
+| Pydantic | 2.0+ | Validação de configurações |
+| Pydantic Settings | 2.0+ | Gerenciamento de settings com type checking |
 
 ---
 
@@ -73,7 +75,7 @@ source .venv/bin/activate
 
 **3. Instale as dependências**
 ```bash
-pip install pygame python-dotenv
+pip install pygame python-dotenv pydantic pydantic-settings
 ```
 
 **4. Execute o jogo**
@@ -85,6 +87,8 @@ python main.py
 
 ## ⚙️ Configuração
 
+### Variáveis de Ambiente
+
 Crie um arquivo `.env` na raiz do projeto para personalizar a resolução:
 
 ```env
@@ -92,7 +96,27 @@ WIDTH=800
 HEIGHT=600
 ```
 
-Se o arquivo não existir, os valores padrão (`800x600`) são usados automaticamente. Todas as outras constantes do jogo podem ser ajustadas diretamente em `settings.py`.
+Se o arquivo não existir, os valores padrão (`800x600`) são usados automaticamente.
+
+### Sistema de Configurações
+
+O projeto utiliza **Pydantic Settings** para gerenciamento robusto de configurações:
+
+- ✅ **Validação de tipos**: Todas as configurações são tipadas e validadas
+- ✅ **Carregamento de `.env`**: Variáveis podem ser sobrescritas por arquivo `.env`
+- ✅ **Defaults seguros**: Valores padrão bem definidos para cada configuração
+- ✅ **Uma única fonte da verdade**: Toda configuração vem da classe `Settings`
+
+**Como usar:**
+
+```python
+from settings import settings
+
+# Acessar valores de configuração
+screen_width = settings.WIDTH
+player_speed = settings.PLAYER_SPEED
+font = settings.FONT_MAIN
+```
 
 ---
 

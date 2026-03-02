@@ -1,11 +1,6 @@
 import pygame
 from states.base_state import BaseState
-from settings import (
-    WIDTH, HEIGHT,
-    FONT_MAIN, FONT_DETAILS,
-    UPGRADE_SPEED_BONUS, UPGRADE_DAMAGE_BONUS,
-    WHITE, BLACK,
-)
+from settings import settings
 
 # Cores locais
 GOLD    = (255, 200,  50)
@@ -36,22 +31,22 @@ class UpgradeState(BaseState):
         self.choice: str | None = None
         self._selected = 0          # índice da opção destacada (0 ou 1)
 
-        self._overlay = pygame.Surface((WIDTH, HEIGHT))
+        self._overlay = pygame.Surface((settings.WIDTH, settings.HEIGHT))
         self._overlay.set_alpha(200)
-        self._overlay.fill(BLACK)
+        self._overlay.fill(settings.BLACK)
 
         self._options = [
             {
                 "key":    "speed",
                 "label":  "Velocidade da Nave",
-                "desc":   f"+ {UPGRADE_SPEED_BONUS} de velocidade",
+                "desc":   f"+ {settings.UPGRADE_SPEED_BONUS} de velocidade",
                 "color":  CYAN,
                 "hotkey": "1",
             },
             {
                 "key":    "damage",
                 "label":  "Potência dos Tiros",
-                "desc":   f"+ {UPGRADE_DAMAGE_BONUS} de dano base",
+                "desc":   f"+ {settings.UPGRADE_DAMAGE_BONUS} de dano base",
                 "color":  ORANGE,
                 "hotkey": "2",
             },
@@ -87,22 +82,22 @@ class UpgradeState(BaseState):
         screen.blit(self._overlay, (0, 0))
 
         # Título
-        title = FONT_MAIN.render("UPGRADE DISPONÍVEL!", True, GOLD)
-        screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 80))
+        title = settings.FONT_MAIN.render("UPGRADE DISPONÍVEL!", True, GOLD)
+        screen.blit(title, (settings.WIDTH // 2 - title.get_width() // 2, 80))
 
-        hint = FONT_DETAILS.render(
+        hint = settings.FONT_DETAILS.render(
             "Use [1] / [2]  ou  ← → para navegar e ENTER para confirmar",
             True, DIM,
         )
-        screen.blit(hint, (WIDTH // 2 - hint.get_width() // 2, 140))
+        screen.blit(hint, (settings.WIDTH // 2 - hint.get_width() // 2, 140))
 
         # Cards das opções
         card_w = 220
         card_h = 130
         gap    = 40
         total  = len(self._options) * card_w + (len(self._options) - 1) * gap
-        start_x = WIDTH // 2 - total // 2
-        card_y  = HEIGHT // 2 - card_h // 2
+        start_x = settings.WIDTH // 2 - total // 2
+        card_y  = settings.HEIGHT // 2 - card_h // 2
 
         for i, opt in enumerate(self._options):
             card_x   = start_x + i * (card_w + gap)
@@ -115,22 +110,22 @@ class UpgradeState(BaseState):
             pygame.draw.rect(screen, border_color, (card_x, card_y, card_w, card_h), border_width, border_radius=10)
 
             # Hotkey
-            hotkey_surf = FONT_MAIN.render(f"[{opt['hotkey']}]", True, opt["color"])
+            hotkey_surf = settings.FONT_MAIN.render(f"[{opt['hotkey']}]", True, opt["color"])
             screen.blit(hotkey_surf, (
                 card_x + card_w // 2 - hotkey_surf.get_width() // 2,
                 card_y + 12,
             ))
 
             # Label
-            label_color = WHITE if selected else DIM
-            label_surf  = FONT_DETAILS.render(opt["label"], True, label_color)
+            label_color = settings.WHITE if selected else DIM
+            label_surf  = settings.FONT_DETAILS.render(opt["label"], True, label_color)
             screen.blit(label_surf, (
                 card_x + card_w // 2 - label_surf.get_width() // 2,
                 card_y + 60,
             ))
 
             # Descrição do bônus
-            desc_surf = FONT_DETAILS.render(opt["desc"], True, opt["color"])
+            desc_surf = settings.FONT_DETAILS.render(opt["desc"], True, opt["color"])
             screen.blit(desc_surf, (
                 card_x + card_w // 2 - desc_surf.get_width() // 2,
                 card_y + 90,

@@ -1,14 +1,7 @@
 import pygame
 import random
 from core.entity import Entity
-from settings import (
-    WIDTH, HEIGHT,
-    METEOR_RADIUS_MIN, METEOR_RADIUS_MAX,
-    METEOR_SPEED_MIN, METEOR_SPEED_MAX, METEOR_SPEED_SCALE,
-    METEOR_COLORS,
-    FONT_DETAILS,
-    WHITE,
-)
+from settings import settings
 
 
 class Meteor(Entity):
@@ -26,17 +19,17 @@ class Meteor(Entity):
     """
 
     def __init__(self, level: int):
-        self.radius = random.randint(METEOR_RADIUS_MIN, METEOR_RADIUS_MAX)
+        self.radius = random.randint(settings.METEOR_RADIUS_MIN, settings.METEOR_RADIUS_MAX)
         self.max_hp = 1 + level
         self.hp = self.max_hp
-        self._base_color = random.choice(METEOR_COLORS)
+        self._base_color = random.choice(settings.METEOR_COLORS)
         size = self.radius * 2
 
-        x = random.randint(self.radius, WIDTH - self.radius) - self.radius
+        x = random.randint(self.radius, settings.WIDTH - self.radius) - self.radius
         y = -size
 
         # entities/meteor.py
-        self.speed = random.uniform(METEOR_SPEED_MIN, METEOR_SPEED_MAX) + level * METEOR_SPEED_SCALE
+        self.speed = random.uniform(settings.METEOR_SPEED_MIN, settings.METEOR_SPEED_MAX) + level * settings.METEOR_SPEED_SCALE
         super().__init__(x, y, size, size)
         self.mask = pygame.mask.from_surface(self.image)
 
@@ -70,7 +63,7 @@ class Meteor(Entity):
             self.mask = pygame.mask.from_surface(self.image)   # atualiza máscara
 
     def is_off_screen(self) -> bool:
-        return self.pos_y - self.radius > HEIGHT
+        return self.pos_y - self.radius > settings.HEIGHT
 
     # ── Helpers visuais ───────────────────────────────────────────────────────
 

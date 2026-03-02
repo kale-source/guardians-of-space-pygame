@@ -1,12 +1,6 @@
 import pygame
 from core.entity import Entity
-from settings import (
-    BULLET_SPEED,
-    BULLET_BASE_WIDTH, BULLET_BASE_HEIGHT,
-    BULLET_COLOR, BULLET_CHARGED_COLOR,
-    BULLET_MAX_SIZE_MULT, BULLET_MAX_DAMAGE,
-    HEIGHT,
-)
+from settings import settings
 
 
 class Bullet(Entity):
@@ -25,23 +19,23 @@ class Bullet(Entity):
 
     def __init__(self, x: float, y: float, charge_ratio: float = 0.0, damage_bonus: int = 0) -> None:
         self.charge_ratio = max(0.0, min(1.0, charge_ratio))
-        self.damage       = max(1, round(1 + (BULLET_MAX_DAMAGE - 1) * self.charge_ratio) + damage_bonus)
+        self.damage       = max(1, round(1 + (settings.BULLET_MAX_DAMAGE - 1) * self.charge_ratio) + damage_bonus)
 
         # Tamanho escala com a carga
-        mult   = 1.0 + (BULLET_MAX_SIZE_MULT - 1.0) * self.charge_ratio
-        width  = max(1, int(BULLET_BASE_WIDTH  * mult))
-        height = max(1, int(BULLET_BASE_HEIGHT * mult))
+        mult   = 1.0 + (settings.BULLET_MAX_SIZE_MULT - 1.0) * self.charge_ratio
+        width  = max(1, int(settings.BULLET_BASE_WIDTH  * mult))
+        height = max(1, int(settings.BULLET_BASE_HEIGHT * mult))
 
         # Centraliza a bala no X de origem
         centered_x = x - width // 2
 
         super().__init__(centered_x, y - height, width, height)
-        self.speed = BULLET_SPEED
+        self.speed = settings.BULLET_SPEED
 
     # ── Entity interface ──────────────────────────────────────────────────────
 
     def _build_image(self) -> None:
-        color = self._lerp_color(BULLET_COLOR, BULLET_CHARGED_COLOR, self.charge_ratio)
+        color = self._lerp_color(settings.BULLET_COLOR, settings.BULLET_CHARGED_COLOR, self.charge_ratio)
         pygame.draw.rect(
             self.image,
             color,

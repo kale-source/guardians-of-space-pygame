@@ -1,6 +1,6 @@
 import pygame
 from states.base_state import BaseState
-from settings import WIDTH, HEIGHT, FONT_MAIN, FONT_SUB, FONT_DETAILS, WHITE, RED
+from settings import settings
 
 
 class GameOverState(BaseState):
@@ -21,7 +21,7 @@ class GameOverState(BaseState):
         self.score   = 0
 
         # Overlay semitransparente reutilizável
-        self._overlay = pygame.Surface((WIDTH, HEIGHT))
+        self._overlay = pygame.Surface((settings.WIDTH, settings.HEIGHT))
         self._overlay.set_alpha(150)
         self._overlay.fill((0, 0, 0))
 
@@ -53,16 +53,16 @@ class GameOverState(BaseState):
         else:
             title_text = "Você foi atingido por um meteoro!"
 
-        title = FONT_MAIN.render(title_text, True, RED)
-        hint  = FONT_SUB.render("Pressione ESC para reiniciar", True, WHITE)
-        stats = FONT_DETAILS.render(
+        title = settings.FONT_MAIN.render(title_text, True, settings.RED)
+        hint  = settings.FONT_SUB.render("Pressione ESC para reiniciar", True, settings.WHITE)
+        stats = settings.FONT_DETAILS.render(
             f"Tempo: {self.seconds}s   Level: {self.level}   "
             f"Score: {self.score}   Escaparam: {self.escaped_meteors}",
-            True, WHITE,
+            True, settings.WHITE,
         )
 
-        cx = WIDTH  // 2
-        cy = HEIGHT // 2
+        cx = settings.WIDTH  // 2
+        cy = settings.HEIGHT // 2
 
         screen.blit(title, (cx - title.get_width() // 2, cy - 60))
         screen.blit(hint,  (cx - hint.get_width()  // 2, cy +  0))

@@ -1,5 +1,5 @@
 import pygame
-from settings import WIDTH, HEIGHT, FPS, TITLE
+from settings import settings
 from core.state_manager import StateManager
 from states.playing_state import PlayingState
 from states.game_over_state import GameOverState
@@ -19,9 +19,9 @@ class Game:
 
     def __init__(self) -> None:
         pygame.init()
-        self.screen  = pygame.display.set_mode((WIDTH, HEIGHT))
+        self.screen  = pygame.display.set_mode((settings.WIDTH, settings.HEIGHT))
         self.clock   = pygame.time.Clock()
-        pygame.display.set_caption(TITLE)
+        pygame.display.set_caption(settings.TITLE)
 
         self._sm = StateManager()
         self._register_states()
@@ -33,7 +33,7 @@ class Game:
 
     def run(self) -> None:
         while self._running:
-            self.clock.tick(FPS)
+            self.clock.tick(settings.FPS)
             events = pygame.event.get()
 
             # Evento de fechar janela — tratado aqui, não nos estados

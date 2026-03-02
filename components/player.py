@@ -1,12 +1,6 @@
 import pygame
 from core.entity import Entity
-from settings import (
-    WIDTH, HEIGHT,
-    PLAYER_SPEED, PLAYER_WIDTH, PLAYER_HEIGHT,
-    BULLET_COOLDOWN, BULLET_CHARGE_MAX_FRAMES,
-    BULLET_COLOR, BULLET_CHARGED_COLOR,
-    WHITE,
-)
+from settings import settings
 from components.bullet import Bullet
 
 
@@ -26,8 +20,8 @@ class Player(Entity):
     """
 
     def __init__(self, x: float, y: float) -> None:
-        super().__init__(x, y, PLAYER_WIDTH, PLAYER_HEIGHT)
-        self.speed            = PLAYER_SPEED
+        super().__init__(x, y, settings.PLAYER_WIDTH, settings.PLAYER_HEIGHT)
+        self.speed            = settings.PLAYER_SPEED
         self._cooldown_timer  = 0
         self._charge_frames   = 0
         self._space_held      = False
@@ -38,7 +32,7 @@ class Player(Entity):
     def _build_image(self) -> None:
         w, h = self.width, self.height
         pygame.draw.polygon(
-            self.image, WHITE,
+            self.image, settings.WHITE,
             [(w // 2, 0), (0, h), (w, h)],
         )
 
@@ -65,8 +59,8 @@ class Player(Entity):
         if keys[pygame.K_DOWN]:
             self.pos_y += self.speed
 
-        self.pos_x = max(0.0, min(self.pos_x, WIDTH  - self.width))
-        self.pos_y = max(0.0, min(self.pos_y, HEIGHT - self.height))
+        self.pos_x = max(0.0, min(self.pos_x, settings.WIDTH  - self.width))
+        self.pos_y = max(0.0, min(self.pos_y, settings.HEIGHT - self.height))
         self._sync_rect()
 
     def _handle_charge(
@@ -81,13 +75,13 @@ class Player(Entity):
 
         if space_pressed:
             # Acumula carga enquanto o espaço é segurado (cap em max)
-            self._charge_frames = min(self._charge_frames + 1, BULLET_CHARGE_MAX_FRAMES)
+            self._charge_frames = min(self._charge_frames + 1, settings.BULLET_CHARGE_MAX_FRAMES)
         elif self._space_held and not space_pressed:
             # Espaço foi SOLTO: dispara com a carga acumulada
             if self._cooldown_timer == 0:
-                ratio = self._charge_frames / BULLET_CHARGE_MAX_FRAMES
+                ratio = self._charge_frames / settings.BULLET_CHARGE_MAX_FRAMES
                 self._fire(bullet_group, charge_ratio=ratio)
-                self._cooldown_timer = BULLET_COOLDOWN
+                self._cooldown_timer = settings.BULLET_COOLDOWN
             self._charge_frames = 0
 
         self._space_held = space_pressed
@@ -121,16 +115,16 @@ class Player(Entity):
 
         # Nave
         w, h = self.width, self.height
-        pygame.draw.polygon(self.image, WHITE, [(w // 2, 0), (0, h), (w, h)])
+        pygame.draw.polygon(self.image, settings.WHITE, [(w // 2, 0), (0, h), (w, h)])
 
         # Indicador de carga — só exibe se estiver carregando
         if self._charge_frames > 0:
-            ratio = self._charge_frames / BULLET_CHARGE_MAX_FRAMES
+            ratio = self._charge_frames / settings.BULLET_CHARGE_MAX_FRAMES
 
             # Interpola cor: ciano → laranja
-            r = int(BULLET_COLOR[0] + (BULLET_CHARGED_COLOR[0] - BULLET_COLOR[0]) * ratio)
-            g = int(BULLET_COLOR[1] + (BULLET_CHARGED_COLOR[1] - BULLET_COLOR[1]) * ratio)
-            b = int(BULLET_COLOR[2] + (BULLET_CHARGED_COLOR[2] - BULLET_COLOR[2]) * ratio)
+            r = int(settings.BULLET_COLOR[0] + (settings.BULLET_CHARGED_COLOR[0] - settings.BULLET_COLOR[0]) * ratio)
+            g = int(settings.BULLET_COLOR[1] + (settings.BULLET_CHARGED_COLOR[1] - settings.BULLET_COLOR[1]) * ratio)
+            b = int(settings.BULLET_COLOR[2] + (settings.BULLET_CHARGED_COLOR[2] - settings.BULLET_COLOR[2]) * ratio)
             color = (r, g, b)
 
             # Arco que cresce de 0° a 180° conforme a carga
