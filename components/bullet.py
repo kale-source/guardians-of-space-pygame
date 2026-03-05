@@ -4,37 +4,23 @@ from settings import settings
 
 
 class Bullet(Entity):
-    """
-    Projétil disparado pelo player.
+    """Projétil com carga variável"""
 
-    Recebe um charge_ratio (0.0 a 1.0) que escala:
-        - Tamanho visual (width e height)
-        - Dano causado ao meteoro (1 a BULLET_MAX_DAMAGE)
-        - Cor: ciano (normal) → laranja (totalmente carregada)
-
-    Comportamento:
-        charge_ratio = 0.0  → bala mínima, 1 de dano
-        charge_ratio = 1.0  → bala máxima, BULLET_MAX_DAMAGE de dano
-    """
-
-    def __init__(self, x: float, y: float, charge_ratio: float = 0.0, damage_bonus: int = 0) -> None:
+    def __init__(self, x, y, charge_ratio=0.0, damage_bonus=0):
         self.charge_ratio = max(0.0, min(1.0, charge_ratio))
-        self.damage       = max(1, round(1 + (settings.BULLET_MAX_DAMAGE - 1) * self.charge_ratio) + damage_bonus)
+        self.damage = max(1, round(1 + (settings.BULLET_MAX_DAMAGE - 1) * self.charge_ratio) + damage_bonus)
 
         # Tamanho escala com a carga
-        mult   = 1.0 + (settings.BULLET_MAX_SIZE_MULT - 1.0) * self.charge_ratio
-        width  = max(1, int(settings.BULLET_BASE_WIDTH  * mult))
+        mult = 1.0 + (settings.BULLET_MAX_SIZE_MULT - 1.0) * self.charge_ratio
+        width = max(1, int(settings.BULLET_BASE_WIDTH * mult))
         height = max(1, int(settings.BULLET_BASE_HEIGHT * mult))
 
-        # Centraliza a bala no X de origem
         centered_x = x - width // 2
-
         super().__init__(centered_x, y - height, width, height)
         self.speed = settings.BULLET_SPEED
 
-    # ── Entity interface ──────────────────────────────────────────────────────
-
-    def _build_image(self) -> None:
+    def _build_image(self):
+        """Desenha a bala com cor baseado na carga"""
         color = self._lerp_color(settings.BULLET_COLOR, settings.BULLET_CHARGED_COLOR, self.charge_ratio)
         pygame.draw.rect(
             self.image,
@@ -43,22 +29,18 @@ class Bullet(Entity):
             border_radius=min(self.width, self.height) // 2,
         )
 
-    def update(self, *args, **kwargs) -> None:
+    def update(self):
+        """Movimento pra cima"""
         self.pos_y -= self.speed
         self._sync_rect()
 
-    # ── Helpers ───────────────────────────────────────────────────────────────
-
-    def is_off_screen(self) -> bool:
+    def is_off_screen(self):
+        """Verifica se saiu da tela"""
         return self.pos_y + self.height < 0
 
     @staticmethod
-    def _lerp_color(
-        c1: tuple[int, int, int],
-        c2: tuple[int, int, int],
-        t: float,
-    ) -> tuple[int, int, int]:
-        """Interpola linearmente entre duas cores pelo fator t (0.0–1.0)."""
+    def _lerp_color(c1, c2, t):
+        """Interpola entre duas cores"""
         return (
             int(c1[0] + (c2[0] - c1[0]) * t),
             int(c1[1] + (c2[1] - c1[1]) * t),
