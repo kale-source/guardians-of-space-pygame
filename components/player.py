@@ -5,7 +5,12 @@ from components.bullet import Bullet
 
 
 class Player(Entity):
-    """Nave do jogador com movimento e disparo acumulável"""
+    """
+    Nave do jogador com movimento e disparo acumulável:
+    - Movimento com setas e WASD, limitado às bordas da tela.
+    - Sistema de carga para disparos com dano variável.
+    - Upgrades de velocidade, dano e cooldown.
+    """
 
     def __init__(self, x, y):
         super().__init__(x, y, settings.PLAYER_WIDTH, settings.PLAYER_HEIGHT)
@@ -17,7 +22,9 @@ class Player(Entity):
         self.damage_bonus = 0
 
     def _build_image(self):
-        """Desenha a nave (triângulo branco)"""
+        """
+        Desenha a nave como um triângulo branco.
+        """
         w, h = self.width, self.height
         pygame.draw.polygon(
             self.image, settings.WHITE,
@@ -25,13 +32,22 @@ class Player(Entity):
         )
 
     def update(self, keys, bullet_group):
-        """Atualiza movimento e disparo"""
+        """
+        Atualiza a lógica do jogador:
+        - Processa movimento baseado nas teclas pressionadas.
+        - Gerencia carga e disparo de balas.
+        - Atualiza visual de carga.
+        """
         self._move(keys)
         self._handle_charge(keys, bullet_group)
         self._update_charge_visual()
 
     def _move(self, keys):
-        """Movimento com setas"""
+        """
+        Movimento com setas e WASD, limitado à tela:
+        - Processa entrada do teclado para movimento.
+        - Limita posição dentro dos limites da tela.
+        """
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.pos_x -= self.speed
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
@@ -47,7 +63,12 @@ class Player(Entity):
         self._sync_rect()
 
     def _handle_charge(self, keys, bullet_group):
-        """Gerencia carga e disparo"""
+        """
+        Gerencia carga e disparo de balas:
+        - Acumula carga enquanto ESPAÇO está pressionado.
+        - Dispara quando ESPAÇO é solto, gerando bala com carga apropriada.
+        - Controla cooldown entre disparos.
+        """
         space_pressed = bool(keys[pygame.K_SPACE])
 
         if self._cooldown_timer > 0:
@@ -65,13 +86,21 @@ class Player(Entity):
         self._space_held = space_pressed
 
     def _fire(self, bullet_group, charge_ratio):
-        """Cria bala na ponta da nave"""
+        """
+        Cria e dispara uma bala na ponta da nave:
+        - Define posição na ponta do triângulo.
+        - Passa ratio de carga e bonus de dano à bala.
+        """
         tip_x = self.pos_x + self.width // 2
         tip_y = self.pos_y
         bullet_group.add(Bullet(tip_x, tip_y, charge_ratio, self.damage_bonus))
 
     def apply_speed_upgrade(self, bonus):
-        """Upgrade de velocidade"""
+        """
+        Aplica upgrade de velocidade:
+        - Aumenta velocidade de movimento do jogador.
+        - Verifica limite máximo de velocidade.
+        """
         if self.speed >= 30:
             print("Velocidade máxima atingida!")
         else:
@@ -79,16 +108,28 @@ class Player(Entity):
             print(f"Velocidade: {self.speed}")
 
     def apply_damage_upgrade(self, bonus):
-        """Upgrade de dano"""
+        """
+        Aplica upgrade de dano:
+        - Aumenta dano bônus aplicado às balas.
+        """
         self.damage_bonus += bonus
         print(f"Dano bônus: {self.damage_bonus}")
     
     def apply_cooldown_upgrade(self, cooldown_bonus):
+        """
+        Aplica upgrade de cooldown:
+        - Diminui tempo de espera entre disparos.
+        """
         self.cooldown -= cooldown_bonus
         print(f"Cooldown diminuido: {self.cooldown}")
 
     def _update_charge_visual(self):
-        """Redesenha nave com visualização de carga"""
+        """
+        Desenha um arco de carga abaixo da nave, mudando de cor conforme a carga aumenta (azul para laranja). 
+        O arco é proporcional ao tempo de carga, dando feedback visual ao jogador sobre o poder do próximo disparo.
+
+        O arco é desenhado usando pygame.draw.arc, com um retângulo delimitador posicionado abaixo da nave.
+        """
         self.image.fill((0, 0, 0, 0))
 
         w, h = self.width, self.height

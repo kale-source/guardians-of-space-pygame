@@ -1,5 +1,4 @@
 import pygame
-import random
 from settings import settings
 from components.player import Player
 from components.meteor import Meteor
@@ -8,11 +7,23 @@ from components.stars import StarField
 
 class Game:
     """
-    Loop principal do jogo - bem simples e direto.
-    Gerencia o estado do jogo: "playing", "game_over" ou "upgrade".
+    Loop principal do jogo com gerenciamento de estados:
+    - Controla estados: "playing", "game_over" ou "upgrade".
+    - Usa métodos privados para cada estado, mantendo lógica organizada.
+    - _init_playing: configura o estado de jogo.
+    - _update_playing: atualiza lógica, movimentação, spawn e colisões.
+    - _draw_playing: renderiza estado de jogo com HUD.
+    - _draw_game_over: renderiza tela de game over com estatísticas.
+    - _draw_upgrade: renderiza tela de upgrades com opções.
     """
 
     def __init__(self):
+        """
+        Inicializa o Pygame, configura janela e estado inicial:
+        - Configura display com dimensões e título.
+        - Inicializa clock para controle de FPS.
+        - Define estado inicial como "playing".
+        """
         pygame.init()
         self.screen = pygame.display.set_mode((settings.WIDTH, settings.HEIGHT))
         self.clock = pygame.time.Clock()
@@ -25,7 +36,13 @@ class Game:
         self._init_playing()
 
     def run(self):
-        """Loop principal"""
+        """
+        Executa o loop principal do jogo:
+        - Controla frame rate com clock.
+        - Processa eventos do jogador.
+        - Atualiza e renderiza baseado no estado atual.
+        - Limpa recursos ao sair.
+        """
         running = True
         while running:
             self.clock.tick(settings.FPS)
@@ -54,7 +71,12 @@ class Game:
     # ═══════════════════════════════════════════════════════════════════════════
 
     def _init_playing(self):
-        """Setup do estado de jogo"""
+        """
+        Configura o estado de jogo (playing):
+        - Cria player, campo de estrelas e grupos de sprites.
+        - Inicializa variáveis de controle (level, score, timers).
+        - Reseta upgrades para nova sessão.
+        """
         self.player = Player(settings.PLAYER_START_X, settings.PLAYER_START_Y)
         self.star_field = StarField()
         self.meteor_group = pygame.sprite.Group()
@@ -71,7 +93,14 @@ class Game:
         self._last_level_up = 0
 
     def _update_playing(self, events):
-        """Atualizar lógica do jogo"""
+        """
+        Atualiza a lógica do jogo:
+        - Gerencia o tempo e o level up baseado no tempo.
+        - Atualiza o player com input do teclado.
+        - Controla o spawn de meteoros baseado no level.
+        - Atualiza meteoros e balas, removendo os que saem da tela.
+        - Gerencia colisões entre balas e meteoros, e entre player e meteoros, atualizando score, kills e transições de estado conforme necessário.
+        """
         # Pequenos hotkeys
         for event in events:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_t:
@@ -79,6 +108,7 @@ class Game:
 
         # Timer
         elapsed_ms = pygame.time.get_ticks() - self._start_ticks
+        # Converter para segundos inteiros para facilitar o display e o controle de level up
         self.seconds = elapsed_ms // 1000
 
         # Level up check
@@ -118,12 +148,13 @@ class Game:
 
         # Colisões: balas ↔ meteoros
         hits = pygame.sprite.groupcollide(
-            self.bullet_group,
-            self.meteor_group,
-            True,
-            False,
-            pygame.sprite.collide_mask,
+            self.bullet_group,          # grupo 1
+            self.meteor_group,          # grupo 2
+            True,                       # dokill1: mata a bala automaticamente ao colidir
+            False,                      # dokill2: NÃO mata o meteoro automaticamente
+            pygame.sprite.collide_mask  # método de detecção: pixel-perfect
         )
+
         for bullet, meteors_hit in hits.items():
             for meteor in meteors_hit:
                 meteor.hit(bullet.damage)
@@ -136,15 +167,21 @@ class Game:
 
         # Colisões: player ↔ meteoro
         hit = pygame.sprite.spritecollide(
-            self.player, self.meteor_group,
+            self.player, 
+            self.meteor_group,
             dokill=False,
             collided=pygame.sprite.collide_mask,
         )
+
         if hit:
             self.game_state = "game_over"
 
     def _draw_playing(self):
-        """Renderizar estado de jogo"""
+        """
+        Renderiza o estado de jogo:
+        - Desenha background, campo de estrelas, sprites.
+        - Renderiza HUD com informações de jogo.
+        """
         self.screen.fill((0, 0, 0))
         self.star_field.update_draw(self.screen)
         self.bullet_group.draw(self.screen)
@@ -165,7 +202,11 @@ class Game:
     # ═══════════════════════════════════════════════════════════════════════════
 
     def _draw_game_over(self, events):
-        """Renderizar tela de game over"""
+        """
+        Renderiza a tela de game over:
+        - Exibe estatísticas finais (tempo, level, score, escapados).
+        - Aguarda ESPAÇO para reiniciar o jogo.
+        """
         self.screen.fill((0, 0, 0))
 
         # Título
@@ -200,7 +241,12 @@ class Game:
     # ═══════════════════════════════════════════════════════════════════════════
 
     def _draw_upgrade(self, events):
-        """Tela de seleção de upgrade"""
+        """
+        Renderiza a tela de seleção de upgrade:
+        - Exibe 3 opções: (1) Velocidade, (2) Dano, (3) Cooldown.
+        - Aguarda input do jogador e aplica upgrade escolhido.
+        - Retorna ao estado "playing" após escolha.
+        """
         self.screen.fill((0, 0, 0))
 
         title = settings.FONT_MAIN.render("UPGRADE!", True, (255, 200, 0))

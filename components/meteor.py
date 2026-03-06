@@ -5,7 +5,13 @@ from settings import settings
 
 
 class Meteor(Entity):
-    """Meteoro que cai com HP e muda de cor quando acertado"""
+    """
+    Meteoro que cai com HP e muda de cor quando acertado:
+    - Tamanho varia aleatoriamente.
+    - HP aumenta com o level do jogo.
+    - Cor branca conforme recebe dano.
+    - Remove-se da tela quando escapa pela base.
+    """
 
     def __init__(self, level):
         self.radius = random.randint(settings.METEOR_RADIUS_MIN, settings.METEOR_RADIUS_MAX)
@@ -22,7 +28,10 @@ class Meteor(Entity):
         self.mask = pygame.mask.from_surface(self.image)
 
     def _build_image(self):
-        """Desenha o meteoro (círculo)"""
+        """
+        Desenha o meteoro como um círculo:
+        - Cor varia conforme o nível de HP.
+        """
         self.image.fill((0, 0, 0, 0))
         pygame.draw.circle(
             self.image,
@@ -32,12 +41,20 @@ class Meteor(Entity):
         )
 
     def update(self):
-        """Cai pra baixo"""
+        """
+        Atualiza posição do meteoro:
+        - Move para baixo com velocidade baseada no level.
+        """
         self.pos_y += self.speed
         self._sync_rect()
 
     def hit(self, damage=1):
-        """Recebe dano, muda cor e morre se HP <= 0"""
+        """
+        Aplica dano ao meteoro:
+        - Reduz HP baseado no dano recebido.
+        - Atualiza cor visual do meteoro.
+        - Remove meteoro do jogo se HP <= 0.
+        """
         self.hp -= damage
         if self.hp <= 0:
             self.kill()
@@ -46,11 +63,16 @@ class Meteor(Entity):
             self.mask = pygame.mask.from_surface(self.image)
 
     def is_off_screen(self):
-        """Saiu da tela pela base"""
+        """
+        Verifica se o meteoro saiu da tela pela base.
+        """
         return self.pos_y - self.radius > settings.HEIGHT
 
     def _current_color(self):
-        """Interpola cor: quando danificado fica mais branco"""
+        """
+        Interpola cor do meteoro baseado em HP:
+        - Quando danificado, intepola para branco.
+        """
         ratio = self.hp / self.max_hp
         r, g, b = self._base_color
         r = int(r + (255 - r) * (1 - ratio))
