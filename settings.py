@@ -89,7 +89,7 @@ class Settings(BaseSettings):
     # Upgrades
     LEVEL_UP_INTERVAL: int = Field(default=20, description="Intervalo para subir de nível")
     MAX_ESCAPED_METEORS: int = Field(default=10, description="Número máximo de meteoros que podem escapar")
-    UPGRADE_EVERY_N_KILLS: int = Field(default=15, description="Subir de nível a cada N inimigos eliminados")
+    UPGRADE_EVERY_N_KILLS: int = Field(default=10, description="Subir de nível a cada N inimigos eliminados")
     UPGRADE_SPEED_BONUS: int = Field(default=1, description="Bônus de velocidade ao subir de nível")
     UPGRADE_DAMAGE_BONUS: int = Field(default=1, description="Bônus de dano ao subir de nível")
     UPGRADE_COOLDOWN_BONUS: int = Field(default=1, description="Bônus de recarga ao subir de nível")

@@ -29,10 +29,29 @@ class Star:
     def update(self):
         """
         Atualiza a estrela a cada frame:
-        - Move verticalmente com parallaxe baseado em velocidade.
-        - Reposiciona no topo ao sair pela base.
+        - Move verticalmente com parallax baseado em velocidade.
+        - Reposiciona no topo com atributos renovados ao sair pela base.
         - Aplica efeito de piscar variando o brilho.
         """
+        # deslocamento vertical
+        self.y += self.speed
+
+        # se saiu da tela, reaparecer no topo com valores aleatórios
+        if self.y > settings.HEIGHT:
+            self.y = float(random.randint(-settings.HEIGHT, 0))
+            self.x = random.randint(0, settings.WIDTH)
+            # renovar velocidade/tamanho para manter aleatoriedade contínua
+            self.speed = random.uniform(settings.STAR_SPEED_MIN, settings.STAR_SPEED_MAX)
+            self.size = 1 if self.speed < (settings.STAR_SPEED_MIN + settings.STAR_SPEED_MAX) / 2 else 2
+
+        # piscar: ajustar brilho, inverter direção nos limites
+        self.brightness += self.direction * settings.STAR_BLINK_SPEED
+        if self.brightness <= settings.STAR_BRIGHTNESS_MIN:
+            self.brightness = settings.STAR_BRIGHTNESS_MIN
+            self.direction = 1
+        elif self.brightness >= settings.STAR_BRIGHTNESS_MAX:
+            self.brightness = settings.STAR_BRIGHTNESS_MAX
+            self.direction = -1
 
     def draw(self, screen: pygame.Surface):
         """
